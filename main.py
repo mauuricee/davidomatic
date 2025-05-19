@@ -2,6 +2,7 @@
 import os # Librairie
 
 import random
+import pymongo
 
 import discord # Importation de la librairie Discord
 from discord import app_commands
