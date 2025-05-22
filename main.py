@@ -28,6 +28,7 @@ clientMongo = pymongo.MongoClient(f"mongodb+srv://davidomatic:{MDP_MONGO}@cluste
 dbMongo = clientMongo["davidomatic"] # Recuperer la BDD davidomatic
 
 collGroupes = dbMongo["groupes"] # Recuperer la collection groupes
+collEtudiants = dbMongo["etudiants"] # Recuperer la collection etudiants
 
 @tree.command(
     name="creergroupe",
