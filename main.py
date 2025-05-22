@@ -39,7 +39,7 @@ collEtudiants = dbMongo["etudiants"] # Recuperer la collection etudiants
     groupe="Le nom du groupe a creer"
 )
 async def creategroup_command(interaction, groupe: str):
-    groupeTrigger = collGroupes.find_one({"nomGroupe": f"{groupe.lower()}"}) # Requete pour trouver le groupe dans la BDD
+    groupeTrigger = collGroupes.find_one({"nomGroupe": groupe.lower()}) # Requete pour trouver le groupe dans la BDD
     if groupeTrigger: # Si le groupe existe deja
         return await interaction.response.send_message(f"Le groupe **{groupe}** existe deja !", ephemeral = True)
     nouvelleDonnee = { # Array contenant le nom du groupe ainsi que le groupe en minuscules (pour eviter la casse)
