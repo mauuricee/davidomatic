@@ -27,11 +27,11 @@ user_xp_data = {}  # Format : {user_id: {"xp": int, "level": int}}
 # Commande /creergroupe
 @tree.command(
     name="creergroupe",
-    description="Commande pour creer un groupe (temporaire)",
+    description="Commande pour créer un groupe (temporaire)",
     guild=discord.Object(id=GUILDE)
 )
 @app_commands.describe(
-    groupe="Le nom du groupe a creer"
+    groupe="Le nom du groupe à créer"
 )
 async def creategroup_command(interaction, groupe: str):
     collection_groupes[groupe] = []
@@ -44,7 +44,7 @@ async def creategroup_command(interaction, groupe: str):
     guild=discord.Object(id=GUILDE)
 )
 @app_commands.describe(
-    groupe="Le nom du groupe a supprimer"
+    groupe="Le nom du groupe à supprimer"
 )
 async def removegroup_command(interaction, groupe: str):
     if groupe in collection_groupes:
@@ -53,7 +53,7 @@ async def removegroup_command(interaction, groupe: str):
     else:
         await interaction.response.send_message(f"⚠️ Groupe **{groupe}** introuvable.")
 
-# Commande /level pour voir son niveau et XP
+# Commande /level
 @tree.command(
     name="level",
     description="Affiche ton niveau et ton XP",
@@ -68,6 +68,35 @@ async def level_command(interaction):
     await interaction.response.send_message(
         f"📊 {interaction.user.mention}, tu es au **niveau {level}** avec **{xp} XP**. Prochain niveau à **{next_xp} XP**."
     )
+
+# Commande /presentation
+@tree.command(
+    name="presentation",
+    description="Présentation du bot",
+    guild=discord.Object(id=GUILDE)
+)
+async def presentation_command(interaction):
+    await interaction.response.send_message(
+        "👋 Salut ! Je suis un bot Discord créé pour t'accompagner dans le serveur.\n"
+        "Je propose : des commandes fun (/magicresponse, /coinflip), un système de niveaux, des groupes, et plus encore !\n"
+        "Tape `/` pour voir toutes mes commandes disponibles 😎"
+    )
+
+# Commande /magicresponse (anciennement /8ball)
+@tree.command(
+    name="magicresponse",
+    description="Pose une question, et reçois une réponse magique 🎱",
+    guild=discord.Object(id=GUILDE)
+)
+@app_commands.describe(
+    question="Ta question pour la boule magique"
+)
+async def magicresponse_command(interaction, question: str):
+    reponses = [
+        "Oui.", "Non.", "Peut-être.", "Absolument !", "Je ne pense pas.",
+        "Demande plus tard.", "C'est sûr.", "Tu plaisantes, j'espère ?", "Sans aucun doute.", "Hmm... douteux."
+    ]
+    await interaction.response.send_message(f"🎱 Question : *{question}*\nRéponse : **{random.choice(reponses)}**")
 
 # Événement quand le bot est prêt
 @client.event
@@ -85,10 +114,9 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    contenu = message.content.upper()
     user_id = str(message.author.id)
 
-    # Ajouter XP
+    # Ajouter de l'XP
     if user_id not in user_xp_data:
         user_xp_data[user_id] = {"xp": 0, "level": 1}
 
@@ -101,20 +129,6 @@ async def on_message(message):
     if xp >= next_level_xp:
         user_xp_data[user_id]["level"] += 1
         await message.channel.send(f"🎉 {message.author.mention} a atteint le niveau {level + 1} !")
-
-    # Réactions personnalisées
-    funfacts_david = [
-        "David est le prof le plus sympa mine de rien",
-        "David adore les aliens",
-        "David est fan de Star Wars",
-        "David ne sait pas se raser les cheveux tout seul",
-    ]
-
-    if "MOUNIR" in contenu:
-        await message.reply("Mounir... Tu veux dire Maurice ? Ou alors Pierre !")
-    elif "DAVID" in contenu:
-        reponse = random.choice(funfacts_david)
-        await message.reply(reponse)
 
 # Lancer le bot
 client.run(TOKEN)
