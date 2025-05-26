@@ -121,6 +121,38 @@ async def cleanGroup_command(interaction, groupe: str, confirmation: str):
 
 
 
+@tree.command(
+    name="affichergroupe",
+    description="Commande pour lister les etudiants d'un groupe",
+    guild=discord.Object(id=GUILDE)
+)
+@app_commands.describe(
+    groupe="Groupe dont on doit afficher la liste"
+)
+async def showGroup_command(interaction, groupe: str):
+    argumentGroupe = groupe.lower().strip()
+    groupeTrigger = collGroupes.find_one({"nomGroupe": argumentGroupe})
+    etudiantsTrigger = collEtudiants.count_documents({"groupeEtudiant": argumentGroupe})
+    if not groupeTrigger:
+        return await interaction.response.send_message(f"Le groupe **{argumentGroupe}** n'existe pas.")
+    elif not etudiantsTrigger:
+        return await interaction.response.send_message(f"Le groupe **{argumentGroupe}** ne contient aucun etudiant.")
+    else:
+        etudiantsData = collEtudiants.find({"groupeEtudiant": argumentGroupe})
+        listeString = ""
+        for etudiant in etudiantsData:
+            listeString += f"*({etudiant["idEtudiant"]})* {etudiant["nomEtudiant"]}" + "\n"
+        
+        if len(listeString) >= 4096:
+            fichierTexte = open("liste.txt", "a")
+            fichierTexte.write(listeString)
+            await interaction.response.send_message(f"La liste etant trop longue pour Discord, celle-ci a ete mise dans un fichier texte joint a ce message", ephemeral = True, file = discord.File("liste.txt"))
+            return os.remove("liste.txt")
+        else:
+            listeEmbed = discord.Embed(title = f"Etudiants dans le groupe {groupe}", description = listeString, color=0xff8040)
+            listeEmbed.set_footer(text="Les donnees sont affichees sont la forme (ID) nom")
+            return await interaction.response.send_message(embed = listeEmbed, ephemeral = True)
+
 
 
 @tree.command(
@@ -178,11 +210,21 @@ async def createSubGroup_command(interaction, groupe: str, nombre: int):
             groupeEtudiantsNoms.append(etudiant["nomEtudiant"])
         groupe_melange = random.sample(groupeEtudiantsNoms, len(groupeEtudiantsNoms))
 
+        groupesEmbed=discord.Embed(title=f"Groupes de travail de {nombre} personnes du groupe {argumentGroupe}", color=0xff8040)
+
         sous_groupes = []
 
         for i in range(0, len(groupe_melange), nombre):
             sous_groupe = groupe_melange[i:i + nombre]
-            sous_groupes.append(sous_groupe)
+            fieldString = ""
+            for eleve in sous_groupe:
+                fieldString += eleve["nomEtudiant"] + ", "
+            else:
+                fieldString += eleve["nomEtudiant"]
+
+            groupesEmbed.add_field(name=f"Groupe {i + 1}", value = fieldString, inline=True)
+
+        return await interaction.response.send_message(embed = groupesEmbed, ephemeral = True)
 
 
 
