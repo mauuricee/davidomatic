@@ -82,7 +82,7 @@ async def presentation_command(interaction):
         "Tape `/` pour voir toutes mes commandes disponibles 😎"
     )
 
-# Commande /magicresponse (anciennement /8ball)
+# Commande /magicresponse
 @tree.command(
     name="magicresponse",
     description="Pose une question, et reçois une réponse magique 🎱",
@@ -96,7 +96,7 @@ async def magicresponse_command(interaction, question: str):
         "Oui.", "Non.", "Peut-être.", "Absolument !", "Je ne pense pas.",
         "Demande plus tard.", "C'est sûr.", "Tu plaisantes, j'espère ?", "Sans aucun doute.", "Hmm... douteux."
     ]
-    await interaction.response.send_message(f"🎱 Question : *{question}*\nRéponse : **{random.choice(reponses)}**")
+    await interaction.response.send_message(f" Question : *{question}*\nRéponse : **{random.choice(reponses)}**")
 
 # Événement quand le bot est prêt
 @client.event
