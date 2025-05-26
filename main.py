@@ -95,6 +95,33 @@ async def removestudent_command(interaction, etudiant: str):
             return await interaction.response.send_message(f"Une erreur est survenue lors de la suppression : {e}", ephemeral = True)
 
 
+@tree.command(
+    name="vidergroupe",
+    description="Commande pour vider un groupe de tous ses membres",
+    guild=discord.Object(id=GUILDE)
+)
+@app_commands.describe(
+    groupe="Le nom du groupe a vider",
+    confirmation="Ecrire le nom du groupe a nouveau pour confirmer l'action"
+)
+async def cleanGroup_command(interaction, groupe: str, confirmation: str):
+    argumentGroupe = groupe.strip().lower()
+    argumentConfirmation = confirmation.strip().lower()
+    groupeTrigger = collGroupes.find_one({"nomGroupe": groupe.lower().strip()})
+    if argumentGroupe != argumentConfirmation:
+        return await interaction.response.send_message("L'action n'a pas pu etre confirmee. Verifiez que vous avez rentre correctement le nom du groupe 2 fois.", ephemeral = True)
+    elif not groupeTrigger:
+        return await interaction.response.send_message(f"Le groupe **{argumentGroupe}** n'existe pas.", ephemeral = True)
+    else:
+        try:
+            collEtudiants.delete_many({"groupeEtudiant": argumentGroupe})
+            return await interaction.response.send_message(f"Le groupe **{argumentGroupe}** a ete vide avec succes !", ephemeral = True)
+        except Exception as e:
+            return await interaction.response.send_message(f"Une erreur est survenue : {e}", ephemeral = True)
+
+
+
+
 
 @tree.command(
     name="ajouteretudiant",
@@ -123,6 +150,41 @@ async def addUserToGroup_command(interaction, groupe: str, nom: str):
             return await interaction.response.send_message(f"L'etudiant **{nom}** membre du groupe **{groupe}** a ete ajoute a la base de donnees avec succes !", ephemeral = True)
         except Exception as e:
             return await interaction.response.send_message(f"Une erreur est survenue avec la commande : {e}", ephemeral = True)
+
+@tree.command(
+    name="groupes",
+    description="Commande pour creer des sous-groupes de X etudiants d'un groupe deja existant",
+    guild=discord.Object(id=GUILDE)
+)
+@app_commands.describe(
+    groupe="Nom du groupe",
+    nombre="Nombre de membres par groupe"
+)
+async def createSubGroup_command(interaction, groupe: str, nombre: int):
+    argumentGroupe = groupe.lower().strip()
+    groupeTrigger = collGroupes.find_one({"nomGroupe": argumentGroupe.lower().strip()})
+    etudiantsTrigger = collEtudiants.find({ "groupeEtudiant": argumentGroupe })
+    if not groupeTrigger:
+        return await interaction.response.send_message(f"Le groupe **{argumentGroupe}** n'existe pas.", ephemeral = True)
+    elif not etudiantsTrigger:
+        return await interaction.response.send_message(f"Le groupe **{argumentGroupe}** ne contient pas d'etudiants.", ephemeral = True)
+    elif etudiantsTrigger.len() < nombre:
+        return await interaction.response.send_message(f"Il n'y a pas assez d'etudiants dans le groupe **{argumentGroupe}** pour former des groupes de **{nombre}** personnes", ephemeral = True)
+    else:
+        nombreGroupesComplets = int(etudiantsTrigger.len() / nombre)
+        personnesSansGroupes = etudiantsTrigger.len() % nombre
+        groupeEtudiantsNoms = []
+        for etudiant in etudiantsTrigger:
+            groupeEtudiantsNoms.append(etudiant["nomEtudiant"])
+        groupe_melange = random.sample(groupeEtudiantsNoms, len(groupeEtudiantsNoms))
+
+        sous_groupes = []
+
+        for i in range(0, len(groupe_melange), nombre):
+            sous_groupe = groupe_melange[i:i + nombre]
+            sous_groupes.append(sous_groupe)
+
+
 
 @tree.command(
     name="renommergroupe",
