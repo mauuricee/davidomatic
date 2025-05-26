@@ -31,6 +31,7 @@ dbMongo = clientMongo["davidomatic"] # Recuperer la BDD davidomatic
 collGroupes = dbMongo["groupes"] # Recuperer la collection groupes
 collEtudiants = dbMongo["etudiants"]
 
+
 @tree.command(
     name="creergroupe",
     description="Commande pour creer un groupe dans la base de donnees",
@@ -63,11 +64,37 @@ async def creategroup_command(interaction, groupe: str):
 )
 async def removegroup_command(interaction, groupe: str):
     groupeTrigger = collGroupes.find_one({"nomGroupe": groupe.lower().strip()})
+    etudiantTrigger = collEtudiants.find({"groupeEtudiant": groupe.lower().strip()})
     if not groupeTrigger:
         return await interaction.response.send_message(f"Le groupe **{groupe}** n'existe pas ou plus.", ephemeral = True)
+    elif etudiantTrigger:
+        return await interaction.response.send_message(f"Le groupe **{groupe}** n'est pas vide. Veuillez le vider avant de continuer.", ephemeral = True)
     else:
         collGroupes.delete_one({"nomGroupe": groupe.lower().strip()})
         return await interaction.response.send_message(f"Le groupe **{groupe}** a ete supprime avec succes.", ephemeral = True)
+
+
+@tree.command(
+    name="supprimeretudiant",
+    description="Commande pour supprimer un etudiant dans la base de donnees",
+    guild=discord.Object(id=GUILDE)
+)
+@app_commands.describe(
+    etudiant="Le nom / ID de l'etudiant a supprimer"
+)
+async def removestudent_command(interaction, etudiant: str):
+    argument = etudiant.strip()
+    etudiantTrigger = collEtudiants.find_one({"$or": [{"nomEtudiant": argument.lower()}, {"idEtudiant": argument.upper()} ] } )
+    if not etudiantTrigger:
+        return await interaction.response.send_message(f"L'etudiant avec le nom / ID **{argument}** n'a pas ete trouve dans la base de donnees.", ephemeral = True)
+    else:
+        try:
+            collEtudiants.delete_one({"$or": [{"nomEtudiant": argument.lower()}, {"idEtudiant": argument.upper()} ] } )
+            return await interaction.response.send_message(f"L'etudiant **{etudiantTrigger["nomEtudiant"]}** a ete supprime de la base de donnees avec succes !", ephemeral = True)
+        except Exception as e:
+            return await interaction.response.send_message(f"Une erreur est survenue lors de la suppression : {e}", ephemeral = True)
+
+
 
 @tree.command(
     name="ajouteretudiant",
@@ -119,10 +146,9 @@ async def renameGroup_command(interaction, groupe: str, nouveaunom: str):
         nouvelleDonnee = { "$set": { "nomGroupe": nouveaunom.lower().strip() } }
         try:
             collGroupes.update_one({"nomGroupe": groupe.lower().strip()}, nouvelleDonnee)
-            membresExistants = collEtudiants.find({"nomGroupe": groupe.lower().strip()})
+            membresExistants = collEtudiants.find({"groupeEtudiant": groupe.lower().strip()})
             for etudiant in membresExistants:
-                print(etudiant)
-                collEtudiants.update_one({"idEtudiant": etudiant.id}, { "$set": {"groupeEtudiant": nouveaunom.lower().strip()} } )
+                collEtudiants.update_one({"idEtudiant": etudiant["idEtudiant"]}, { "$set": {"groupeEtudiant": nouveaunom.lower().strip()} } )
             return await interaction.response.send_message(f"Le groupe **{groupe}** a ete renomme en **{nouveaunom}** avec succes et les etudiants de ce groupe ont ete mis a jour !", ephemeral = True)
         except Exception as e:
             return await interaction.response.send_message(f"Une erreur est survenue : {e}")
@@ -130,6 +156,7 @@ async def renameGroup_command(interaction, groupe: str, nouveaunom: str):
 @client.event
 async def on_ready():
     print(f"{client.user} s'est connecte avec succes")
+    await client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="David faire du cafe"))
     try:
         await tree.sync(guild=discord.Object(id=GUILDE))
         print("Commandes synchronisees avec succes")
@@ -153,6 +180,24 @@ async def on_message(message):
         "David adore les aliens",
         "David est fan de Star Wars",
         "David ne sait pas se raser les cheveux tout seul",
+        "David peut tres bien dessiner Marc-Andre",
+    ]
+
+    funfacts_joel = [
+        "Joel parle tres vite, mais vraiment tres tres vite",
+        "Joel porte toujours du Hollister",
+    ]
+
+    funfacts_paul = [
+        "Personne ne sait pourquoi Paul nous a enseigne le cours de Access",
+        "Paul enseigne le meilleur cours (d'apres Em)",
+    ]
+
+    funfacts_ghislain = [
+        "Ghislain voit tout",
+        "Ghislain VEUT les commentaires d'entete",
+        "Ghislain vient des memes contrees lointaines que Marc-Andre",
+        "Ghislain a choisi de vivre a Allardville (juste, pourquoi ????)",
     ]
     
     if "MOUNIR" in contenu:
@@ -160,6 +205,18 @@ async def on_message(message):
 
     elif "DAVID" in contenu:
         reponse = random.choice(funfacts_david)
+        await message.reply(reponse)
+
+    elif "JOEL" in contenu:
+        reponse = random.choice(funfacts_joel)
+        await message.reply(reponse)
+
+    elif "PAUL" in contenu:
+        reponse = random.choice(funfacts_paul)
+        await message.reply(reponse)
+
+    elif "GHISLAIN" in contenu:
+        reponse = random.choice(funfacts_ghislain)
         await message.reply(reponse)
 
     else:
