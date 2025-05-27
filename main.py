@@ -214,14 +214,14 @@ async def createSubGroup_command(interaction, groupe: str, nombre: int):
         sous_groupes = []
 
         for i in range(0, len(groupe_melange), nombre):
-            sous_groupe = groupe_melange[i:i + nombre]
-            fieldString = ""
-            for eleve in sous_groupe:
-                fieldString += eleve + ", "
-            else:
-                fieldString += eleve
+            sous_groupes.append(groupe_melange[i:i + nombre])
 
-            groupesEmbed.add_field(name=f"Groupe {i + 1}", value = fieldString, inline=True)
+        numeroGroupe = 1
+
+        for groupe in sous_groupes:
+            listeGroupeString = ", ".join(groupe)
+            groupesEmbed.add_field(name=f"Groupe {numeroGroupe}", value = listeGroupeString, inline=True)
+            numeroGroupe += 1
 
         return await interaction.response.send_message(embed = groupesEmbed, ephemeral = True)
 
