@@ -232,12 +232,12 @@ async def createSubGroup_command(interaction, groupe: str, nombre: int):
         for i in range(0, len(groupe_melange), nombre):
             sous_groupes.append(groupe_melange[i:i + nombre])
 
-        numeroGroupe = 1
+        numeroGroupe = 0
 
         for groupe in sous_groupes:
+            numeroGroupe += 1
             listeGroupeString = ", ".join(groupe)
             groupesEmbed.add_field(name=f"Groupe {numeroGroupe}", value = listeGroupeString, inline=True)
-            numeroGroupe += 1
 
         return await interaction.response.send_message(embed = groupesEmbed, ephemeral = True)
 
@@ -271,6 +271,7 @@ async def renameGroup_command(interaction, groupe: str, nouveaunom: str):
             return await interaction.response.send_message(f"Le groupe **{groupe}** a ete renomme en **{nouveaunom}** avec succes et les etudiants de ce groupe ont ete mis a jour !", ephemeral = True)
         except Exception as e:
             return await interaction.response.send_message(f"Une erreur est survenue : {e}")
+
 
 @client.event
 async def on_ready():
