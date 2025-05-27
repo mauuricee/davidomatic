@@ -194,19 +194,18 @@ async def addUserToGroup_command(interaction, groupe: str, nom: str):
 )
 async def createSubGroup_command(interaction, groupe: str, nombre: int):
     argumentGroupe = groupe.lower().strip()
-    groupeTrigger = collGroupes.find_one({"nomGroupe": argumentGroupe.lower().strip()})
-    etudiantsTrigger = collEtudiants.find({ "groupeEtudiant": argumentGroupe })
+    groupeTrigger = collGroupes.find_one({"nomGroupe": argumentGroupe})
+    etudiantsTrigger = collEtudiants.count_documents({ "groupeEtudiant": argumentGroupe })
     if not groupeTrigger:
         return await interaction.response.send_message(f"Le groupe **{argumentGroupe}** n'existe pas.", ephemeral = True)
     elif not etudiantsTrigger:
         return await interaction.response.send_message(f"Le groupe **{argumentGroupe}** ne contient pas d'etudiants.", ephemeral = True)
-    elif etudiantsTrigger.len() < nombre:
+    elif etudiantsTrigger < nombre:
         return await interaction.response.send_message(f"Il n'y a pas assez d'etudiants dans le groupe **{argumentGroupe}** pour former des groupes de **{nombre}** personnes", ephemeral = True)
     else:
-        nombreGroupesComplets = int(etudiantsTrigger.len() / nombre)
-        personnesSansGroupes = etudiantsTrigger.len() % nombre
+        etudiantsData = collEtudiants.find({"groupeEtudiant": argumentGroupe})
         groupeEtudiantsNoms = []
-        for etudiant in etudiantsTrigger:
+        for etudiant in etudiantsData:
             groupeEtudiantsNoms.append(etudiant["nomEtudiant"])
         groupe_melange = random.sample(groupeEtudiantsNoms, len(groupeEtudiantsNoms))
 
@@ -218,9 +217,9 @@ async def createSubGroup_command(interaction, groupe: str, nombre: int):
             sous_groupe = groupe_melange[i:i + nombre]
             fieldString = ""
             for eleve in sous_groupe:
-                fieldString += eleve["nomEtudiant"] + ", "
+                fieldString += eleve + ", "
             else:
-                fieldString += eleve["nomEtudiant"]
+                fieldString += eleve
 
             groupesEmbed.add_field(name=f"Groupe {i + 1}", value = fieldString, inline=True)
 
