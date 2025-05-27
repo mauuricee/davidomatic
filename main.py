@@ -9,9 +9,6 @@ import discord # Importation de la librairie Discord
 from discord import app_commands
 from dotenv import load_dotenv # Librairie Dotenv pour les infos d'environnement
 
-collection_groupes = {
-
-}
 
 load_dotenv() # Recuperation des donnees du fichier dotenv
 TOKEN = os.getenv('TOKEN')
@@ -154,6 +151,23 @@ async def showGroup_command(interaction, groupe: str):
             return await interaction.response.send_message(embed = listeEmbed, ephemeral = True)
 
 
+@tree.command(
+    name="listergroupes",
+    description="Commande pour lister les groupes",
+    guild=discord.Object(id=GUILDE)
+)
+async def listGroups_command(interaction):
+    groupesTrigger = collGroupes.count_documents({})
+    if not groupesTrigger:
+        return await interaction.response.send_message("Il n'y a aucun groupe enregistre dans la base de donnees", ephemeral = True)
+    else:
+        groupesData = collGroupes.find({})
+        groupesNames = []
+        for etudiant in groupesData:
+            groupesNames.append(etudiant["nomGroupe"])
+        stringData = "\n".join(groupesNames)
+        listeEmbed = discord.Embed(title = "Liste des groupes enregistres dans la base de donnees", description = stringData, color = 0xff7e40)
+        return await interaction.response.send_message(embed = listeEmbed, ephemeral = True)
 
 @tree.command(
     name="ajouteretudiant",
@@ -183,6 +197,7 @@ async def addUserToGroup_command(interaction, groupe: str, nom: str):
         except Exception as e:
             return await interaction.response.send_message(f"Une erreur est survenue avec la commande : {e}", ephemeral = True)
 
+
 @tree.command(
     name="groupes",
     description="Commande pour creer des sous-groupes de X etudiants d'un groupe deja existant",
@@ -207,6 +222,7 @@ async def createSubGroup_command(interaction, groupe: str, nombre: int):
         groupeEtudiantsNoms = []
         for etudiant in etudiantsData:
             groupeEtudiantsNoms.append(etudiant["nomEtudiant"])
+        
         groupe_melange = random.sample(groupeEtudiantsNoms, len(groupeEtudiantsNoms))
 
         groupesEmbed=discord.Embed(title=f"Groupes de travail de {nombre} personnes du groupe {argumentGroupe}", color=0xff8040)
