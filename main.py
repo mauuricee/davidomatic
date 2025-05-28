@@ -27,6 +27,7 @@ dbMongo = clientMongo["davidomatic"] # Recuperer la BDD davidomatic
 
 collGroupes = dbMongo["groupes"] # Recuperer la collection groupes
 collEtudiants = dbMongo["etudiants"]
+collNiveaux = dbMongo["niveaux"]
 
 
 @tree.command(
@@ -163,8 +164,9 @@ async def listGroups_command(interaction):
     else:
         groupesData = collGroupes.find({})
         groupesNames = []
-        for etudiant in groupesData:
-            groupesNames.append(etudiant["nomGroupe"])
+        for groupe in groupesData:
+            nombreMembres = collEtudiants.count_documents({"groupeEtudiant": groupe["nomGroupe"]})
+            groupesNames.append(f"**{groupe["nomGroupe"]}** - ({nombreMembres} etudiants)")
         stringData = "\n".join(groupesNames)
         listeEmbed = discord.Embed(title = "Liste des groupes enregistres dans la base de donnees", description = stringData, color = 0xff7e40)
         return await interaction.response.send_message(embed = listeEmbed, ephemeral = True)
@@ -183,7 +185,7 @@ async def addUserToGroup_command(interaction, groupe: str, nom: str):
     etudiantTrigger = collEtudiants.find_one({"nomEtudiant": nom.lower().strip()})
     if etudiantTrigger:
         return await interaction.response.send_message(f"L'etudiant **{nom}** existe deja dans le groupe !", ephemeral = True)
-    if not groupeTrigger:
+    elif not groupeTrigger:
         return await interaction.response.send_message(f"Le groupe **{groupe}** n'existe pas.", ephemeral = True)
     else:
         nouvelleDonnee = {
@@ -273,6 +275,22 @@ async def renameGroup_command(interaction, groupe: str, nouveaunom: str):
             return await interaction.response.send_message(f"Une erreur est survenue : {e}")
 
 
+@tree.command(
+    name="magicresponse",
+    description="Pose une question, et reçois une réponse magique ",
+    guild=discord.Object(id=GUILDE)
+)
+@app_commands.describe(
+    question="Ta question pour la boule magique"
+)
+async def magicresponse_command(interaction, question: str):
+    reponses = [
+        "Oui.", "Non.", "Peut-être.", "Absolument !", "Je ne pense pas.",
+        "Demande plus tard.", "C'est sûr.", "Tu plaisantes, j'espère ?", "Sans aucun doute.", "Hmm... douteux."
+    ]
+    await interaction.response.send_message(f" Question : *{question}*\nRéponse : **{random.choice(reponses)}**")
+
+
 @client.event
 async def on_ready():
     print(f"{client.user} s'est connecte avec succes")
@@ -340,6 +358,47 @@ async def on_message(message):
         await message.reply(reponse)
 
     else:
-        return
+        user_id = str(message.author.id)
+        
+        niveauxTrigger = collNiveaux.find_one({"userID": user_id})
+
+        if not niveauxTrigger:
+            gain = random.randint(5, 10)
+            nouvelleDonnee = {
+                "userID": user_id,
+                "experience": gain,
+                "level": 1
+            }
+            try:
+                collNiveaux.insert_one(nouvelleDonnee)
+            except Exception as e:
+                print(e)
+
+        else:
+            userXP = niveauxTrigger["experience"]
+            userLevel = niveauxTrigger["level"]
+            gain = random.randint(5, 10)
+            
+            userXP += gain
+            userNextLevel = userLevel * 100
+
+            if userXP >= userNextLevel:
+                userLevel += 1
+                await message.reply(f"Felicitations {message.author.mention} ! Tu as atteint le niveau **{userLevel}** !")
+
+            donneeAJour = {
+                "experience": userXP,
+                "level": userLevel
+            }
+
+            try:
+                collNiveaux.update_one({"userID": user_id}, { "$set": donneeAJour })
+            except Exception as e:
+                print(e)
+
+            return
+        
+        
+
 
 client.run(TOKEN)
