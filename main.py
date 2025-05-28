@@ -78,14 +78,14 @@ async def level_command(interaction):
 async def presentation_command(interaction):
     await interaction.response.send_message(
         "👋 Salut ! Je suis un bot Discord créé pour t'accompagner dans le serveur.\n"
-        "Je propose : des commandes fun (/magicresponse, /coinflip), un système de niveaux, des groupes, et plus encore !\n"
+        "Je propose : des commandes fun (/magicresponse), un système de niveaux, des groupes, et plus encore !\n"
         "Tape `/` pour voir toutes mes commandes disponibles 😎"
     )
 
 # Commande /magicresponse
 @tree.command(
     name="magicresponse",
-    description="Pose une question, et reçois une réponse magique 🎱",
+    description="Pose une question, et reçois une réponse magique ",
     guild=discord.Object(id=GUILDE)
 )
 @app_commands.describe(
