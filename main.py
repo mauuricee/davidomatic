@@ -8,6 +8,9 @@ import string
 import discord # Importation de la librairie Discord
 from discord import app_commands
 from dotenv import load_dotenv # Librairie Dotenv pour les infos d'environnement
+from faker import Faker
+
+fake = Faker()
 
 
 load_dotenv() # Recuperation des donnees du fichier dotenv
@@ -50,6 +53,53 @@ async def creategroup_command(interaction, groupe: str):
         return await interaction.response.send_message(f"✅ Le groupe **{groupe}** a ete ajoute avec succes !", ephemeral = True)
     except Exception as e:
         return await interaction.response.send_message(f"❌ Une erreur est survenue : {e}", ephemeral = True)
+    
+
+
+@tree.command(
+    name="demo",
+    description="Commande pour alimenter la base de donnees pour une demo",
+    guild=discord.Object(id=GUILDE)
+)
+async def creategroup_command(interaction):
+    groupes = ["prog1", "prog2", "prog3", "prog4", "prog5", "prog6"]
+    for groupe in groupes:
+        try:
+            collGroupes.insert_one({"nomGroupe": groupe})
+            for i in range(0, random.randint(8, 14)):
+                nouvelleDonnee = {
+                    "idEtudiant": ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6)),
+                    "groupeEtudiant": groupe,
+                    "nomEtudiant": fake.name().lower()
+                }
+                collEtudiants.insert_one(nouvelleDonnee)
+        except Exception as e:
+            print(e)
+            return await interaction.response.send_message(f"❌ Une erreur est survenue : {e}", ephemeral = True)
+    
+    return await interaction.response.send_message("✅ Des groupes ont bien ete crees.", ephemeral = True)
+
+
+@tree.command(
+    name="reset-all",
+    description="Commande pour reinitialiser toutes les commandes du bot",
+    guild=discord.Object(id=GUILDE)
+)
+@app_commands.describe(
+    confirmation="Ecrire 'confirmer' pour confirmer l'action"
+)
+async def level_command(interaction, confirmation: str):
+    if confirmation.strip().lower() != 'confirmer' or not confirmation:
+        return await interaction.response.send_message("❌ Veuillez valider l'action en ecrivant 'confirmer' dans l'argument de la commande !", ephemeral = True)
+    else:
+        try:
+            collEtudiants.delete_many({})
+            collGroupes.delete_many({})
+            collNiveaux.delete_many({})
+            return await interaction.response.send_message("🗑️ Toutes les donnees de la base de donnees ont ete reinitialisees avec succes", ephemeral = True)
+        except Exception as e:
+            print(e)
+
     
 
 @tree.command(
@@ -259,7 +309,7 @@ async def createSubGroup_command(interaction, groupe: str, nombre: int):
         for groupe in sous_groupes:
             numeroGroupe += 1
             listeGroupeString = ", ".join(groupe)
-            groupesEmbed.add_field(name=f"Groupe {numeroGroupe}", value = listeGroupeString, inline=True)
+            groupesEmbed.add_field(name=f"Groupe {numeroGroupe}", value = listeGroupeString, inline=False)
 
         return await interaction.response.send_message(embed = groupesEmbed, ephemeral = True)
 
