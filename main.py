@@ -34,7 +34,7 @@ collNiveaux = dbMongo["niveaux"]
 
 
 @tree.command(
-    name="creergroupe",
+    name="creer-groupe",
     description="Commande pour creer un groupe dans la base de donnees",
     guild=discord.Object(id=GUILDE)
 )
@@ -61,7 +61,7 @@ async def creategroup_command(interaction, groupe: str):
     description="Commande pour alimenter la base de donnees pour une demo",
     guild=discord.Object(id=GUILDE)
 )
-async def creategroup_command(interaction):
+async def demo_command(interaction):
     groupes = ["prog1", "prog2", "prog3", "prog4", "prog5", "prog6"]
     for groupe in groupes:
         try:
@@ -88,7 +88,7 @@ async def creategroup_command(interaction):
 @app_commands.describe(
     confirmation="Ecrire 'confirmer' pour confirmer l'action"
 )
-async def level_command(interaction, confirmation: str):
+async def reset_all_command(interaction, confirmation: str):
     if confirmation.strip().lower() != 'confirmer' or not confirmation:
         return await interaction.response.send_message("❌ Veuillez valider l'action en ecrivant 'confirmer' dans l'argument de la commande !", ephemeral = True)
     else:
@@ -123,7 +123,7 @@ async def level_command(interaction):
 
 
 @tree.command(
-    name="supprimergroupe",
+    name="supprimer-groupe",
     description="Commande pour supprimer un groupe dans la base de donnees",
     guild=discord.Object(id=GUILDE)
 )
@@ -143,7 +143,7 @@ async def removegroup_command(interaction, groupe: str):
 
 
 @tree.command(
-    name="supprimeretudiant",
+    name="supprimer-etudiant",
     description="Commande pour supprimer un etudiant dans la base de donnees",
     guild=discord.Object(id=GUILDE)
 )
@@ -164,7 +164,7 @@ async def removestudent_command(interaction, etudiant: str):
 
 
 @tree.command(
-    name="vidergroupe",
+    name="vider-groupe",
     description="Commande pour vider un groupe de tous ses membres",
     guild=discord.Object(id=GUILDE)
 )
@@ -190,7 +190,7 @@ async def cleanGroup_command(interaction, groupe: str, confirmation: str):
 
 
 @tree.command(
-    name="affichergroupe",
+    name="afficher-groupe",
     description="Commande pour lister les etudiants d'un groupe",
     guild=discord.Object(id=GUILDE)
 )
@@ -223,7 +223,7 @@ async def showGroup_command(interaction, groupe: str):
 
 
 @tree.command(
-    name="listergroupes",
+    name="lister-groupes",
     description="Commande pour lister les groupes",
     guild=discord.Object(id=GUILDE)
 )
@@ -242,7 +242,7 @@ async def listGroups_command(interaction):
         return await interaction.response.send_message(embed = listeEmbed, ephemeral = True)
 
 @tree.command(
-    name="ajouteretudiant",
+    name="ajouter-etudiant",
     description="Commande pour ajouter un etudiant a la base de donnees",
     guild=discord.Object(id=GUILDE)
 )
@@ -316,7 +316,7 @@ async def createSubGroup_command(interaction, groupe: str, nombre: int):
 
 
 @tree.command(
-    name="renommergroupe",
+    name="renommer-groupe",
     description="Commande pour renommer un groupe",
     guild=discord.Object(id=GUILDE)
 )
@@ -426,11 +426,12 @@ async def on_message(message):
 
     else:
         user_id = str(message.author.id)
+
+        gain = random.randint(5, 10)
         
         niveauxTrigger = collNiveaux.find_one({"userID": user_id})
 
         if not niveauxTrigger:
-            gain = random.randint(5, 10)
             nouvelleDonnee = {
                 "userID": user_id,
                 "experience": gain,
@@ -444,7 +445,6 @@ async def on_message(message):
         else:
             userXP = niveauxTrigger["experience"]
             userLevel = niveauxTrigger["level"]
-            gain = random.randint(5, 10)
             
             userXP += gain
             userNextLevel = userLevel * 100
