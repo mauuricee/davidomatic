@@ -12,7 +12,7 @@ from discord import app_commands
 load_dotenv() # Recuperation des donnees du fichier dotenv
 TOKEN = os.getenv('TOKEN')
 GUILDE = os.getenv("GUILDE")
-MDP_MONGO = os.getenv("MONGO-DB-PASS")
+MONGO_URL = os.getenv("MONGO-URL", "mongodb://localhost:27017")
 
 botIntents = discord.Intents.default() # Intents = donnees requises pour le bot
 botIntents.message_content = True
@@ -20,7 +20,7 @@ botIntents.message_content = True
 client = discord.Client(intents=botIntents) # Creer le bot
 tree = app_commands.CommandTree(client) # Arbre des commandes
 
-clientMongo = pymongo.MongoClient(f"mongodb+srv://davidomatic:{MDP_MONGO}@cluster-ccnb.rn6e0ob.mongodb.net/?retryWrites=true&w=majority&appName=cluster-ccnb")
+clientMongo = pymongo.MongoClient(MONGO_URL)
 
 dbMongo = clientMongo["davidomatic"] # Recuperer la BDD davidomatic
 
