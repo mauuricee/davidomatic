@@ -9,7 +9,7 @@ import discord # Importation de la librairie Discord
 from discord import app_commands
 
 TOKEN = os.getenv('TOKEN')
-GUILDE = int(os.getenv("GUILDE", "0"))
+GUILDE = os.getenv("GUILDE")
 MONGO_URL = os.getenv("MONGO-URL", "mongodb://localhost:27017")
 
 botIntents = discord.Intents.default() # Intents = donnees requises pour le bot
