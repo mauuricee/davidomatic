@@ -8,6 +8,10 @@ import string
 import discord # Importation de la librairie Discord
 from discord import app_commands
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 TOKEN = os.getenv('TOKEN')
 GUILDE = os.getenv("GUILDE")
 MONGO_URL = os.getenv("MONGO-URL", "mongodb://localhost:27017")
