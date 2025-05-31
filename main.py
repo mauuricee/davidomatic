@@ -9,7 +9,6 @@ import discord # Importation de la librairie Discord
 from discord import app_commands
 
 TOKEN = os.getenv('TOKEN')
-print(TOKEN)
 GUILDE = os.getenv("GUILDE")
 MONGO_URL = os.getenv("MONGO-URL", "mongodb://localhost:27017")
 
