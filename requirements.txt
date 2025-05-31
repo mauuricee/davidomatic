@@ -1,0 +1,4 @@
+discord
+pymongo
+python-dotenv
+string
